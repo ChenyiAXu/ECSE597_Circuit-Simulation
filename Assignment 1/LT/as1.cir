@@ -1,0 +1,55 @@
+* 4-opamp active filter (from your schematic)
+* vi = cos(wt)  -> use AC analysis with Vin AC 1 (magnitude = 1)
+
+.param R1a=9606  R1b=23280  R2=6800
+.param C1=94.9n C2=20.5n
+.param Rg=9304  Rq=52107   C3=15n
+.param R3=9304  R4=9304    C4=15n
+.param r=20k
+.param A=50     ; ideal opamp open-loop gain
+
+Vin in 0 AC 1
+
+* --- Stage 1 ---------------------------------------------------------
+R1A in  n2 {R1a}
+R1B n2  0  {R1b}
+R2  n2  n3 {R2}
+C2  n3  0  {C2}
+C1  n2  n4 {C1}
+
+* Opamp1: + at n3, - tied to output (voltage follower)
+EOP1 n4 0 n3 n4 {A}
+
+* --- Stage 2 ---------------------------------------------------------
+RG1 n4 n6 {Rg}          ; input resistor into inverting node
+RQ1 n6 n7 {Rq}          ; feedback resistor
+C3_1 n6 n7 {C3}         ; feedback capacitor (parallel with RQ1)
+R3_1 n6 out {R3}        ; summing from final output back to node n6
+
+* Opamp2: + at ground, - at n6, output n7
+EOP2 n7 0 0 n6 {A}
+
+* --- Stage 3 ---------------------------------------------------------
+R4_1 n7 n8 {R4}
+C4_1 n8 n9 {C4}
+
+* Opamp3: + at ground, - at n8, output n9
+EOP3 n9 0 0 n8 {A}
+
+* --- Stage 4 ---------------------------------------------------------
+RIN4 n9  n10 {r}
+RFB4 n10 out {r}
+
+* Opamp4: + at ground, - at n10, output out (= vout)
+EOP4 out 0 0 n10 {A}
+
+* (helps convergence / avoids floating nodes)
+RLEAK1 n4  0 1G
+RLEAK2 n7  0 1G
+RLEAK3 n9  0 1G
+RLEAK4 out 0 1G
+
+.ac dec 200 1 1e6
+*.tran 0 0.5 0 1u   ; uncomment if you want time-domain sim (then define Vin as SINE)
+
+.end
