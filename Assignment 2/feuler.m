@@ -1,0 +1,26 @@
+function [tpoints, r] = feuler(t1, t2, h, in, out)
+global G 
+global C 
+global b 
+
+tpoints = t1:h:t2;
+N = length(tpoints);
+n = size(G,1);
+
+x = zeros(n,N);               %initialize x
+r = zeros(1, N);
+r(1) = x(out, 1);             %initial value included
+
+LHS_constant = C ;
+RHS_constant = C - h*G;
+
+for a = 1 : N-1
+    t = tpoints(a);
+    u = eval(in);
+
+    right = RHS_constant * x(:,a) + h*b*u;
+    x(:, a+1) = LHS_constant\right;
+    r(a+1) = x(out, a+1);     %output
+end                           %end for 
+
+end                           %end function
